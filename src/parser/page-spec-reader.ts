@@ -2,7 +2,8 @@ import { readFileSync, existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { Page } from "../page/page.js";
 import { PageSpec } from "../specs/page/page-spec.js";
-import { Locator, LocatorType } from "../specs/page/locator.js";
+import { Locator, LocatorType, CorrectionType } from "../specs/page/locator.js";
+import type { Correction, CorrectionsRect } from "../specs/page/locator.js";
 import { StructNode } from "./struct-node.js";
 import { IndentationStructureParser } from "./indentation-structure-parser.js";
 import { SpecReader } from "./spec-reader.js";
@@ -24,10 +25,17 @@ export interface PageSpecReaderOptions {
   objects?: Map<string, Locator>;
 }
 
+interface RuleDefinition {
+  pattern: string;
+  paramNames: string[];
+  childNodes: StructNode[];
+}
+
 export class PageSpecReader {
   private readonly parser = new IndentationStructureParser();
   private readonly specReader = new SpecReader();
   private readonly processedImports = new Set<string>();
+  private readonly rules = new Map<string, RuleDefinition>();
 
   read(
     specText: string,
@@ -168,11 +176,15 @@ export class PageSpecReader {
         return 1;
 
       case "@rule":
-        // Rules stored but not processed here (used in sections)
+        this.processRule(name, node, vars);
         return 1;
 
       case "@script":
         this.processScript(name, node, vars);
+        return 1;
+
+      case "@lib":
+        this.processImport(name.replace(/^@lib/, "@import"), node, pageSpec, vars, contextPath, options);
         return 1;
 
       case "@die":
@@ -220,24 +232,64 @@ export class PageSpecReader {
       objectName = `${parentName}.${objectName}`;
     }
 
+    // Extract @(...) corrections and @grouped(name) from parts before locator
+    let corrections: import("../specs/page/locator.js").CorrectionsRect | undefined;
+    let groupedName: string | undefined;
+    const remainingParts: string[] = [];
+
+    for (let p = 1; p < parts.length; p++) {
+      const part = parts[p];
+      if (part.startsWith("@(")) {
+        // Corrections: @(left, top, width, height) — may span multiple parts if spaces
+        let corrStr = part.substring(2);
+        while (!corrStr.includes(")") && p + 1 < parts.length) {
+          p++;
+          corrStr += " " + parts[p];
+        }
+        corrStr = corrStr.replace(/\)$/, "");
+        corrections = this.parseCorrections(corrStr);
+      } else if (part.startsWith("@grouped(")) {
+        // @grouped(groupName)
+        const match = part.match(/@grouped\(([^)]+)\)/);
+        if (match) {
+          groupedName = match[1];
+        }
+      } else {
+        remainingParts.push(part);
+      }
+    }
+
     // Check for multi-object pattern (contains *)
-    if (objectName.includes("*") && parts.length >= 2) {
+    if (objectName.includes("*") && remainingParts.length >= 1) {
       this.processMultiObject(
         objectName,
-        parts.slice(1).join(" "),
+        remainingParts.join(" "),
         node,
         pageSpec,
         vars,
         parentLocator,
       );
+      if (groupedName) {
+        const existing = pageSpec.findObjectsInGroup(groupedName);
+        pageSpec.addObjectGroup(groupedName, [...existing, objectName]);
+      }
       return;
     }
 
     // Parse locator from remaining parts
-    if (parts.length >= 2) {
-      const locatorText = parts.slice(1).join(" ");
-      const locator = this.parseLocator(locatorText, parentLocator);
+    if (remainingParts.length >= 1) {
+      const locatorText = remainingParts.join(" ");
+      let locator = this.parseLocator(locatorText, parentLocator);
+      if (corrections) {
+        locator = locator.withCorrections(corrections);
+      }
       pageSpec.addObject(objectName, locator);
+    }
+
+    // Add to group if @grouped was specified
+    if (groupedName) {
+      const existing = pageSpec.findObjectsInGroup(groupedName);
+      pageSpec.addObjectGroup(groupedName, [...existing, objectName]);
     }
 
     // Process child objects
@@ -251,6 +303,28 @@ export class PageSpecReader {
         currentLocator,
       );
     }
+  }
+
+  private parseCorrections(text: string): CorrectionsRect {
+    const parts = text.split(",").map((s) => s.trim());
+    const parseOne = (s: string): Correction | undefined => {
+      if (!s || s === "0") return undefined;
+      if (s.startsWith("+")) {
+        return { value: parseInt(s.substring(1), 10), type: CorrectionType.PLUS };
+      } else if (s.startsWith("-")) {
+        return { value: parseInt(s.substring(1), 10), type: CorrectionType.MINUS };
+      } else if (s.startsWith("=")) {
+        return { value: parseInt(s.substring(1), 10), type: CorrectionType.EQUALS };
+      } else {
+        return { value: parseInt(s, 10), type: CorrectionType.EQUALS };
+      }
+    };
+    return {
+      left: parts[0] ? parseOne(parts[0]) : undefined,
+      top: parts[1] ? parseOne(parts[1]) : undefined,
+      width: parts[2] ? parseOne(parts[2]) : undefined,
+      height: parts[3] ? parseOne(parts[3]) : undefined,
+    };
   }
 
   private processMultiObject(
@@ -719,6 +793,47 @@ export class PageSpecReader {
     return copy;
   }
 
+  // --- @rule ---
+
+  private processRule(
+    name: string,
+    node: StructNode,
+    vars: VarsParser,
+  ): void {
+    // @rule %{paramName} are %{otherParam}
+    const rulePattern = name.replace(/^@rule\s+/, "").trim();
+    // Extract parameter names from %{...} placeholders
+    const paramNames: string[] = [];
+    const paramRegex = /%\{([^}]+)\}/g;
+    let match: RegExpExecArray | null;
+    while ((match = paramRegex.exec(rulePattern)) !== null) {
+      paramNames.push(match[1]);
+    }
+    // Build a matching pattern — replace %{...} with (.+) for matching invocations
+    const matchPattern = rulePattern.replace(/%\{[^}]+\}/g, "(.+)");
+
+    this.rules.set(matchPattern, {
+      pattern: matchPattern,
+      paramNames,
+      childNodes: node.childNodes,
+    });
+  }
+
+  private matchRule(invocation: string, vars: VarsParser): { rule: RuleDefinition; paramValues: Record<string, string> } | null {
+    for (const [pattern, rule] of this.rules) {
+      const regex = new RegExp("^" + pattern + "$");
+      const match = regex.exec(invocation);
+      if (match) {
+        const paramValues: Record<string, string> = {};
+        for (let i = 0; i < rule.paramNames.length; i++) {
+          paramValues[rule.paramNames[i]] = match[i + 1] ?? "";
+        }
+        return { rule, paramValues };
+      }
+    }
+    return null;
+  }
+
   // --- @script ---
 
   private processScript(
@@ -740,6 +855,33 @@ export class PageSpecReader {
           node.place,
           `Script error: ${e instanceof Error ? e.message : String(e)}`,
         );
+      }
+    } else {
+      // External script file: @script path/to/file.js
+      const scriptPath = name.replace(/^@script\s+/, "").trim();
+      if (scriptPath) {
+        const fullPath = resolve(
+          node.place?.filePath ? dirname(node.place.filePath) : ".",
+          scriptPath,
+        );
+        if (existsSync(fullPath)) {
+          const script = readFileSync(fullPath, "utf-8");
+          const ctx = vars.context;
+          const fn = new Function(...Object.keys(ctx), script);
+          try {
+            fn(...Object.values(ctx));
+          } catch (e) {
+            throw new SyntaxError(
+              node.place,
+              `Script error in '${scriptPath}': ${e instanceof Error ? e.message : String(e)}`,
+            );
+          }
+        } else {
+          throw new SyntaxError(
+            node.place,
+            `Script file not found: '${fullPath}'`,
+          );
+        }
       }
     }
   }
@@ -807,8 +949,54 @@ export class PageSpecReader {
           contextPath,
         );
       } else if (childName.startsWith("|")) {
-        // Rule invocation — would require rule registry
-        // For now, skip
+        // Rule invocation: | ruleName with args
+        const invocation = childName.substring(1).trim();
+        const matched = this.matchRule(invocation, vars);
+        if (matched) {
+          // Set rule parameters as variables
+          const savedVars: Record<string, string | undefined> = {};
+          for (const [paramName, paramValue] of Object.entries(matched.paramValues)) {
+            savedVars[paramName] = vars.context[paramName] as string | undefined;
+            vars.setVariable(paramName, paramValue);
+          }
+
+          // Process child nodes from the rule (the rule's specs apply to the child objects of the invocation)
+          for (const ruleChild of matched.rule.childNodes) {
+            const ruleChildName = vars.parse(ruleChild.name).trim();
+            if (ruleChildName.endsWith(":")) {
+              this.processObjectSpecs(
+                ruleChildName,
+                ruleChild,
+                section,
+                pageSpec,
+                vars,
+                contextPath,
+              );
+            }
+          }
+
+          // Also process the invocation's own children as object specs within rule context
+          for (const invChild of child.childNodes) {
+            const invChildName = vars.parse(invChild.name).trim();
+            if (invChildName.endsWith(":")) {
+              this.processObjectSpecs(
+                invChildName,
+                invChild,
+                section,
+                pageSpec,
+                vars,
+                contextPath,
+              );
+            }
+          }
+
+          // Restore variables
+          for (const [paramName, oldValue] of Object.entries(savedVars)) {
+            if (oldValue !== undefined) {
+              vars.setVariable(paramName, oldValue);
+            }
+          }
+        }
       } else if (childName.startsWith("@")) {
         // Directive inside section
         this.processNodes(
@@ -835,8 +1023,14 @@ export class PageSpecReader {
     // Remove trailing colon
     const objectExpression = name.slice(0, -1).trim();
 
-    // Find matching objects (supports patterns)
-    const objectNames = pageSpec.findMatchingObjectNames(objectExpression);
+    // Find matching objects (supports patterns and &group references)
+    let objectNames: string[];
+    if (objectExpression.startsWith("&")) {
+      const groupName = objectExpression.substring(1);
+      objectNames = pageSpec.findObjectsInGroup(groupName);
+    } else {
+      objectNames = pageSpec.findMatchingObjectNames(objectExpression);
+    }
     const names =
       objectNames.length > 0 ? objectNames : [objectExpression];
 

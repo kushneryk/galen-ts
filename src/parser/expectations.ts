@@ -286,14 +286,24 @@ export function expectColorRanges(reader: StringCharReader): ParsedColorRange[] 
   const ranges: ParsedColorRange[] = [];
 
   while (reader.hasMoreNormalSymbols()) {
-    const range = expectRange(reader, { noEndingWord: true });
-    // After %, should read a color
+    const range = expectColorRange(reader);
+    // Read color — may contain gradient separator "-"
     const colorText = reader.readWord();
     if (!colorText) {
       throw new Error("Expected color value");
     }
-    const colorHex = parseColor(colorText);
-    ranges.push({ range: range.withPercentageOf(""), colorHex });
+
+    // Handle gradient colors: "color1-color2" splits into multiple entries
+    if (colorText.includes("-") && !colorText.startsWith("#")) {
+      const colorParts = colorText.split("-");
+      for (const part of colorParts) {
+        const colorHex = parseColor(part);
+        ranges.push({ range: range.withPercentageOf(""), colorHex });
+      }
+    } else {
+      const colorHex = parseColor(colorText);
+      ranges.push({ range: range.withPercentageOf(""), colorHex });
+    }
 
     // Skip comma
     reader.skipWhitespace();
@@ -303,6 +313,56 @@ export function expectColorRanges(reader: StringCharReader): ParsedColorRange[] 
   }
 
   return ranges;
+}
+
+function expectColorRange(reader: StringCharReader): Range {
+  const isApproximate = reader.firstNonWhiteSpaceSymbol() === "~";
+  const rangeTypeOverride = readRangeType(reader);
+
+  const firstValue = readRangeValue(reader);
+
+  // Check for "to" (range between)
+  reader.skipWhitespace();
+  const pos = reader.getCursorPosition();
+  const nextWord = readWordSkippingDelimiters(reader);
+
+  if (nextWord === "to") {
+    const secondValue = readRangeValue(reader);
+    // Consume optional % after second value
+    reader.skipWhitespace();
+    if (reader.hasMore() && reader.currentSymbol() === "%") {
+      reader.next();
+    }
+    return Range.between(firstValue, secondValue);
+  }
+
+  if (nextWord === "%") {
+    // Simple percentage — range is just the number, % consumed
+    if (isApproximate && rangeTypeOverride !== null) {
+      return Range.between(
+        new RangeValue(firstValue.asDouble() - APPROXIMATE_DELTA),
+        new RangeValue(firstValue.asDouble() + APPROXIMATE_DELTA),
+      );
+    }
+    if (rangeTypeOverride === null) {
+      return Range.exact(firstValue);
+    }
+    return createRangeWithType(rangeTypeOverride, firstValue);
+  }
+
+  // Put back whatever we read — it's probably a color
+  reader.moveCursorTo(pos);
+
+  if (isApproximate && rangeTypeOverride !== null) {
+    return Range.between(
+      new RangeValue(firstValue.asDouble() - APPROXIMATE_DELTA),
+      new RangeValue(firstValue.asDouble() + APPROXIMATE_DELTA),
+    );
+  }
+  if (rangeTypeOverride === null) {
+    return Range.exact(firstValue);
+  }
+  return createRangeWithType(rangeTypeOverride, firstValue);
 }
 
 // --- Comma-separated key-value parsing ---

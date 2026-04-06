@@ -142,9 +142,21 @@ specProcessors.set("near", (reader) => {
 // --- On ---
 
 specProcessors.set("on", (reader) => {
-  const objectName = reader.readWord();
-  if (!objectName) {
+  // First word could be "edge" keyword or object name
+  let firstWord = reader.readWord();
+  if (!firstWord) {
     throw new Error("Missing object name");
+  }
+
+  let objectName: string;
+  if (firstWord === "edge") {
+    // "on edge objectName top left ..." — skip edge keyword
+    objectName = reader.readWord();
+    if (!objectName) {
+      throw new Error("Missing object name after 'edge'");
+    }
+  } else {
+    objectName = firstWord;
   }
 
   // Read sides
@@ -234,7 +246,16 @@ specProcessors.set("centered", (reader) => {
   if (firstWord === "on" || firstWord === "inside") {
     location = firstWord === "on" ? CenteredLocation.ON : CenteredLocation.INSIDE;
   } else {
-    alignment = parseAlignment(firstWord);
+    // Map direction keywords to alignment
+    if (firstWord === "horizontally") {
+      alignment = Alignment.HORIZONTALLY;
+    } else if (firstWord === "vertically") {
+      alignment = Alignment.VERTICALLY;
+    } else if (firstWord === "all") {
+      alignment = Alignment.ALL;
+    } else {
+      alignment = parseAlignment(firstWord);
+    }
     const locationWord = reader.readWord();
     if (!locationWord) {
       throw new Error("Missing location (on, inside)");
@@ -423,17 +444,22 @@ specProcessors.set("image", (reader) => {
         spec.selectedArea = parseArea(value);
         break;
       case "filter":
-        spec.originalFilters.push({ name: value, params: [] });
-        spec.sampleFilters.push({ name: value, params: [] });
+        spec.originalFilters.push(parseFilterWithParams(value));
+        spec.sampleFilters.push(parseFilterWithParams(value));
         break;
       case "filter-a":
-        spec.originalFilters.push({ name: value, params: [] });
+        spec.originalFilters.push(parseFilterWithParams(value));
         break;
       case "filter-b":
-        spec.sampleFilters.push({ name: value, params: [] });
+        spec.sampleFilters.push(parseFilterWithParams(value));
         break;
       case "map-filter":
-        spec.mapFilters.push({ name: value, params: [] });
+        spec.mapFilters.push(parseFilterWithParams(value));
+        break;
+      case "ignore-objects":
+        spec.ignoredObjectExpressions.push(
+          ...value.split(",").map((s) => unquote(s.trim())),
+        );
         break;
     }
   }
@@ -469,6 +495,30 @@ function parseImageErrorRate(text: string): {
     default:
       return { value: parseFloat(t), type: ErrorRateType.PIXELS };
   }
+}
+
+function parseFilterWithParams(text: string): import("../specs/specs.js").ImageFilter {
+  const trimmed = text.trim();
+  const parenStart = trimmed.indexOf("(");
+  if (parenStart >= 0) {
+    const parenEnd = trimmed.lastIndexOf(")");
+    const name = trimmed.substring(0, parenStart).trim();
+    const paramsStr = trimmed.substring(parenStart + 1, parenEnd > parenStart ? parenEnd : trimmed.length);
+    const params = paramsStr.split(",").map((p) => {
+      const t = p.trim();
+      const n = Number(t);
+      return isNaN(n) ? t : n;
+    });
+    return { name, params };
+  }
+  // Space-separated: "blur 2" or just "blur"
+  const parts = trimmed.split(/\s+/);
+  const name = parts[0];
+  const params = parts.slice(1).map((p) => {
+    const n = Number(p);
+    return isNaN(n) ? p : n;
+  });
+  return { name, params };
 }
 
 function parseArea(

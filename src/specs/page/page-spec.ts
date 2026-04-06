@@ -49,12 +49,23 @@ export class PageSpec {
   }
 
   findMatchingObjectNames(pattern: string): string[] {
-    if (!pattern.includes("*")) {
+    // Group reference: &groupName
+    if (pattern.startsWith("&")) {
+      const groupName = pattern.substring(1);
+      return this.findObjectsInGroup(groupName);
+    }
+
+    // No wildcards — exact match
+    if (!pattern.includes("*") && !pattern.includes("#")) {
       return this.objects.has(pattern) ? [pattern] : [];
     }
-    const regex = new RegExp(
-      "^" + pattern.replace(/\*/g, ".*") + "$",
-    );
+
+    // Build regex: * → .*, # → [0-9]+
+    const regexStr = "^" + pattern
+      .replace(/[.+?^${}()|[\]\\]/g, "\\$&") // escape regex special chars (except * and #)
+      .replace(/\*/g, ".*")
+      .replace(/#/g, "[0-9]+") + "$";
+    const regex = new RegExp(regexStr);
     return [...this.objects.keys()].filter((name) => regex.test(name));
   }
 

@@ -33,12 +33,10 @@ export class SpecValidationCentered extends SpecValidation<SpecCentered> {
     const locationText =
       spec.location === CenteredLocation.ON ? "on" : "inside";
 
-    if (
-      spec.alignment === Alignment.ALL ||
-      spec.alignment === Alignment.LEFT ||
-      spec.alignment === Alignment.RIGHT ||
-      spec.alignment === Alignment.CENTERED
-    ) {
+    const checkHorizontal = [Alignment.ALL, Alignment.HORIZONTALLY, Alignment.LEFT, Alignment.RIGHT, Alignment.CENTERED].includes(spec.alignment);
+    const checkVertical = [Alignment.ALL, Alignment.VERTICALLY, Alignment.TOP, Alignment.BOTTOM, Alignment.CENTERED].includes(spec.alignment);
+
+    if (checkHorizontal) {
       // Check horizontal centering
       const horizontalOffset = Math.abs(offsetLeft - offsetRight);
       if (horizontalOffset > spec.errorRate) {
@@ -51,12 +49,7 @@ export class SpecValidationCentered extends SpecValidation<SpecCentered> {
       }
     }
 
-    if (
-      spec.alignment === Alignment.ALL ||
-      spec.alignment === Alignment.TOP ||
-      spec.alignment === Alignment.BOTTOM ||
-      spec.alignment === Alignment.CENTERED
-    ) {
+    if (checkVertical) {
       // Check vertical centering
       const verticalOffset = Math.abs(offsetTop - offsetBottom);
       if (verticalOffset > spec.errorRate) {

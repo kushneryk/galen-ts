@@ -1,6 +1,7 @@
 import { Page } from "../page/page.js";
 import { Locator, LocatorType } from "../specs/page/locator.js";
 import { PageSpec } from "../specs/page/page-spec.js";
+import { Rect } from "../page/rect.js";
 
 /**
  * Provides JavaScript helper functions available within .gspec files.
@@ -48,20 +49,110 @@ export function createSpecJsFunctions(
     }
   };
 
-  functions.find = (pattern: string): string[] => {
-    return pageSpec.findMatchingObjectNames(pattern);
+  /**
+   * Creates a rich object wrapper with .left(), .right(), .top(), .bottom(),
+   * .width(), .height() methods for use in JS expressions.
+   */
+  function createRichObject(objectName: string) {
+    return {
+      name: objectName,
+      left: async () => {
+        if (!page) return 0;
+        const locator = pageSpec.getObjectLocator(objectName);
+        if (!locator) return 0;
+        const element = await page.getObject(objectName, locator);
+        const area = await element.getArea();
+        return area.left;
+      },
+      right: async () => {
+        if (!page) return 0;
+        const locator = pageSpec.getObjectLocator(objectName);
+        if (!locator) return 0;
+        const element = await page.getObject(objectName, locator);
+        const area = await element.getArea();
+        return area.left + area.width;
+      },
+      top: async () => {
+        if (!page) return 0;
+        const locator = pageSpec.getObjectLocator(objectName);
+        if (!locator) return 0;
+        const element = await page.getObject(objectName, locator);
+        const area = await element.getArea();
+        return area.top;
+      },
+      bottom: async () => {
+        if (!page) return 0;
+        const locator = pageSpec.getObjectLocator(objectName);
+        if (!locator) return 0;
+        const element = await page.getObject(objectName, locator);
+        const area = await element.getArea();
+        return area.top + area.height;
+      },
+      width: async () => {
+        if (!page) return 0;
+        const locator = pageSpec.getObjectLocator(objectName);
+        if (!locator) return 0;
+        const element = await page.getObject(objectName, locator);
+        const area = await element.getArea();
+        return area.width;
+      },
+      height: async () => {
+        if (!page) return 0;
+        const locator = pageSpec.getObjectLocator(objectName);
+        if (!locator) return 0;
+        const element = await page.getObject(objectName, locator);
+        const area = await element.getArea();
+        return area.height;
+      },
+    };
+  }
+
+  functions.find = (pattern: string): ReturnType<typeof createRichObject>[] => {
+    const names = pageSpec.findMatchingObjectNames(pattern);
+    return names.map((name) => createRichObject(name));
   };
 
   functions.findAll = functions.find;
 
-  functions.first = (pattern: string): string | null => {
+  functions.first = (pattern: string): ReturnType<typeof createRichObject> | null => {
     const matches = pageSpec.findMatchingObjectNames(pattern);
-    return matches.length > 0 ? matches[0] : null;
+    return matches.length > 0 ? createRichObject(matches[0]) : null;
   };
 
-  functions.last = (pattern: string): string | null => {
+  functions.last = (pattern: string): ReturnType<typeof createRichObject> | null => {
     const matches = pageSpec.findMatchingObjectNames(pattern);
-    return matches.length > 0 ? matches[matches.length - 1] : null;
+    return matches.length > 0 ? createRichObject(matches[matches.length - 1]) : null;
+  };
+
+  // viewport and screen objects with .width() and .height()
+  functions.viewport = {
+    width: async () => {
+      if (!page) return 1024;
+      const special = await page.getObject("viewport", new Locator(LocatorType.CSS, "body"));
+      const area = await special.getArea();
+      return area.width;
+    },
+    height: async () => {
+      if (!page) return 768;
+      const special = await page.getObject("viewport", new Locator(LocatorType.CSS, "body"));
+      const area = await special.getArea();
+      return area.height;
+    },
+  };
+
+  functions.screen = {
+    width: async () => {
+      if (!page) return 1024;
+      const special = await page.getObject("screen", new Locator(LocatorType.CSS, "body"));
+      const area = await special.getArea();
+      return area.width;
+    },
+    height: async () => {
+      if (!page) return 768;
+      const special = await page.getObject("screen", new Locator(LocatorType.CSS, "body"));
+      const area = await special.getArea();
+      return area.height;
+    },
   };
 
   return functions;

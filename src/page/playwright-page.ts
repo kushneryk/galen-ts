@@ -120,6 +120,24 @@ export class PlaywrightPageAdapter implements Page {
           ? new ScreenElement(w, h)
           : new ViewportElement(w, h);
       }
+      case "parent": {
+        // "parent" represents the full page area
+        const w = viewport?.width ?? 1024;
+        const h = viewport?.height ?? 768;
+        return new ViewportElement(w, h);
+      }
+      case "self": {
+        // "self" represents the full page (same as viewport for top-level)
+        const w = viewport?.width ?? 1024;
+        const h = viewport?.height ?? 768;
+        return new ViewportElement(w, h);
+      }
+      case "global": {
+        // "global" represents the entire page including scrollable area
+        const w = viewport?.width ?? 1024;
+        const h = viewport?.height ?? 768;
+        return new ScreenElement(w, h);
+      }
       default:
         return null;
     }

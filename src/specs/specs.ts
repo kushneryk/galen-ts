@@ -75,6 +75,8 @@ export enum Alignment {
   LEFT = "left",
   RIGHT = "right",
   ALL = "all",
+  HORIZONTALLY = "horizontally",
+  VERTICALLY = "vertically",
 }
 
 export abstract class SpecObjectWithErrorRate extends Spec {
@@ -201,6 +203,7 @@ export class SpecImage extends Spec {
   stretch: boolean = false;
   cropIfOutside: boolean = false;
   analyzeOffset: number = 0;
+  ignoredObjectExpressions: string[] = [];
 }
 
 export interface ColorRange {

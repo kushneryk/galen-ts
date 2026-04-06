@@ -10,10 +10,11 @@ describe("createSpecJsFunctions", () => {
   pageSpec.addObject("header", Locator.css(".h"));
 
   describe("find / findAll", () => {
-    it("returns matching object names", () => {
+    it("returns matching rich objects with name property", () => {
       const fns = createSpecJsFunctions(undefined, pageSpec);
-      const find = fns.find as (p: string) => string[];
-      expect(find("button-*")).toEqual(["button-1", "button-2"]);
+      const find = fns.find as (p: string) => { name: string }[];
+      const results = find("button-*");
+      expect(results.map((r) => r.name)).toEqual(["button-1", "button-2"]);
     });
 
     it("findAll is alias for find", () => {
@@ -23,27 +24,31 @@ describe("createSpecJsFunctions", () => {
   });
 
   describe("first / last", () => {
-    it("first returns first match", () => {
+    it("first returns first match as rich object", () => {
       const fns = createSpecJsFunctions(undefined, pageSpec);
-      const first = fns.first as (p: string) => string | null;
-      expect(first("button-*")).toBe("button-1");
+      const first = fns.first as (p: string) => { name: string } | null;
+      const result = first("button-*");
+      expect(result).not.toBeNull();
+      expect(result!.name).toBe("button-1");
     });
 
     it("first returns null for no match", () => {
       const fns = createSpecJsFunctions(undefined, pageSpec);
-      const first = fns.first as (p: string) => string | null;
+      const first = fns.first as (p: string) => { name: string } | null;
       expect(first("nonexistent-*")).toBeNull();
     });
 
-    it("last returns last match", () => {
+    it("last returns last match as rich object", () => {
       const fns = createSpecJsFunctions(undefined, pageSpec);
-      const last = fns.last as (p: string) => string | null;
-      expect(last("button-*")).toBe("button-2");
+      const last = fns.last as (p: string) => { name: string } | null;
+      const result = last("button-*");
+      expect(result).not.toBeNull();
+      expect(result!.name).toBe("button-2");
     });
 
     it("last returns null for no match", () => {
       const fns = createSpecJsFunctions(undefined, pageSpec);
-      const last = fns.last as (p: string) => string | null;
+      const last = fns.last as (p: string) => { name: string } | null;
       expect(last("nope-*")).toBeNull();
     });
   });
