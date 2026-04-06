@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CloudSync - Cloud Storage Made Simple</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #333; }
+
+/* ===== HEADER ===== */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  z-index: 100;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.nav {
+  display: flex;
+  gap: 32px;
+}
+
+.nav a {
+  text-decoration: none;
+  color: #555;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.header-cta {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ===== HERO ===== */
+.hero {
+  margin-top: 64px;
+  padding: 80px 40px;
+  text-align: center;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-title {
+  font-size: 48px;
+  font-weight: 800;
+  color: #1e293b;
+  max-width: 700px;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+.hero-subtitle {
+  font-size: 18px;
+  color: #64748b;
+  max-width: 540px;
+  line-height: 1.6;
+  margin-bottom: 36px;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background: #fff;
+  color: #2563eb;
+  border: 2px solid #2563eb;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ===== FEATURES ===== */
+.features {
+  padding: 80px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.features-title {
+  text-align: center;
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #1e293b;
+}
+
+.features-subtitle {
+  text-align: center;
+  font-size: 16px;
+  color: #64748b;
+  margin-bottom: 60px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.feature-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+}
+
+.feature-icon {
+  width: 64px;
+  height: 64px;
+  background: #eff6ff;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 28px;
+}
+
+.feature-name {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #1e293b;
+}
+
+.feature-desc {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+/* ===== PRICING ===== */
+.pricing {
+  padding: 80px 40px;
+  background: #f8fafc;
+}
+
+.pricing-title {
+  text-align: center;
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #1e293b;
+}
+
+.pricing-subtitle {
+  text-align: center;
+  font-size: 16px;
+  color: #64748b;
+  margin-bottom: 60px;
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.price-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 40px 32px;
+  text-align: center;
+}
+
+.price-card.featured {
+  border: 2px solid #2563eb;
+  position: relative;
+}
+
+.price-card-name {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1e293b;
+}
+
+.price-card-price {
+  font-size: 48px;
+  font-weight: 800;
+  color: #2563eb;
+  margin-bottom: 8px;
+}
+
+.price-card-period {
+  font-size: 14px;
+  color: #94a3b8;
+  margin-bottom: 24px;
+}
+
+.price-card-features {
+  list-style: none;
+  margin-bottom: 32px;
+  text-align: left;
+}
+
+.price-card-features li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: #475569;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.price-card-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid #2563eb;
+  background: #fff;
+  color: #2563eb;
+}
+
+.price-card.featured .price-card-btn {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  background: #1e293b;
+  color: #94a3b8;
+  padding: 60px 40px 30px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto 40px;
+}
+
+.footer-brand {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.footer-desc {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.footer-col-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.footer-col a {
+  display: block;
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 14px;
+  padding: 4px 0;
+}
+
+.footer-bottom {
+  border-top: 1px solid #334155;
+  padding-top: 24px;
+  text-align: center;
+  font-size: 13px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .header { padding: 0 20px; }
+  .nav { display: none; }
+  .hero { padding: 60px 20px; min-height: 360px; }
+  .hero-title { font-size: 32px; }
+  .hero-subtitle { font-size: 16px; }
+  .hero-buttons { flex-direction: column; align-items: center; }
+  .features { padding: 60px 20px; }
+  .features-grid { grid-template-columns: 1fr; }
+  .pricing { padding: 60px 20px; }
+  .pricing-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">CloudSync</div>
+  <nav class="nav">
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </nav>
+  <button class="header-cta">Get Started</button>
+</header>
+
+<section class="hero">
+  <h1 class="hero-title">Your Files, Everywhere You Need Them</h1>
+  <p class="hero-subtitle">CloudSync keeps your documents, photos, and projects in perfect sync across all your devices. Fast, secure, and effortless.</p>
+  <div class="hero-buttons">
+    <button class="btn-primary">Start Free Trial</button>
+    <button class="btn-secondary">Watch Demo</button>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <h2 class="features-title">Why Choose CloudSync?</h2>
+  <p class="features-subtitle">Everything you need for seamless file management.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">&#9889;</div>
+      <h3 class="feature-name">Lightning Fast</h3>
+      <p class="feature-desc">Upload and download at blazing speeds with our global CDN network spanning 40+ regions.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#128274;</div>
+      <h3 class="feature-name">Bank-Grade Security</h3>
+      <p class="feature-desc">End-to-end encryption ensures your files stay private. Zero-knowledge architecture means only you can access your data.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#128257;</div>
+      <h3 class="feature-name">Real-Time Sync</h3>
+      <p class="feature-desc">Changes propagate instantly across all connected devices. Never worry about version conflicts again.</p>
+    </div>
+  </div>
+</section>
+
+<section class="pricing" id="pricing">
+  <h2 class="pricing-title">Simple, Transparent Pricing</h2>
+  <p class="pricing-subtitle">No hidden fees. Cancel anytime.</p>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="price-card-name">Starter</div>
+      <div class="price-card-price">$0</div>
+      <div class="price-card-period">Free forever</div>
+      <ul class="price-card-features">
+        <li>5 GB storage</li>
+        <li>2 devices</li>
+        <li>Basic support</li>
+      </ul>
+      <button class="price-card-btn">Get Started</button>
+    </div>
+    <div class="price-card featured">
+      <div class="price-card-name">Pro</div>
+      <div class="price-card-price">$12</div>
+      <div class="price-card-period">per month</div>
+      <ul class="price-card-features">
+        <li>1 TB storage</li>
+        <li>Unlimited devices</li>
+        <li>Priority support</li>
+        <li>Version history</li>
+      </ul>
+      <button class="price-card-btn">Start Free Trial</button>
+    </div>
+    <div class="price-card">
+      <div class="price-card-name">Enterprise</div>
+      <div class="price-card-price">$49</div>
+      <div class="price-card-period">per user/month</div>
+      <ul class="price-card-features">
+        <li>Unlimited storage</li>
+        <li>Unlimited devices</li>
+        <li>24/7 support</li>
+        <li>Admin console</li>
+        <li>SSO & SAML</li>
+      </ul>
+      <button class="price-card-btn">Contact Sales</button>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">CloudSync</div>
+      <p class="footer-desc">Making file management simple and secure for teams of all sizes since 2020.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Product</div>
+      <a href="#">Features</a>
+      <a href="#">Pricing</a>
+      <a href="#">Integrations</a>
+      <a href="#">Changelog</a>
+    </div>
+    <div>
+      <div class="footer-col-title">Company</div>
+      <a href="#">About</a>
+      <a href="#">Blog</a>
+      <a href="#">Careers</a>
+      <a href="#">Press</a>
+    </div>
+    <div>
+      <div class="footer-col-title">Support</div>
+      <a href="#">Help Center</a>
+      <a href="#">Status</a>
+      <a href="#">Contact</a>
+      <a href="#">Privacy</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2024 CloudSync Inc. All rights reserved.</div>
+</footer>
+
+</body>
+</html>

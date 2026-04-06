@@ -1,0 +1,83 @@
+@objects
+    topbar              css  .topbar
+    topbar-brand        css  .topbar-brand
+    topbar-search       css  .topbar-search
+    sidebar             css  .sidebar
+    main-content        css  .main-content
+    page-title          css  .page-title
+    page-actions        css  .page-actions
+    stats-grid          css  .stats-grid
+    stat-card-1         css  .stat-card:nth-child(1)
+    stat-card-2         css  .stat-card:nth-child(2)
+    stat-card-3         css  .stat-card:nth-child(3)
+    stat-card-4         css  .stat-card:nth-child(4)
+    table-container     css  .table-container
+    table-title         css  .table-title
+
+# =============================================================================
+# MOBILE LAYOUT (375x667)
+# =============================================================================
+
+= Top Bar =
+    topbar:
+        visible
+        height 50 to 60px
+        inside viewport 0px top, 0px left, 0px right
+
+    topbar-brand:
+        visible
+        text is "Acme Dashboard"
+
+    # Search hidden on mobile
+    topbar-search:
+        absent
+
+= Sidebar =
+    # Sidebar hidden on mobile
+    sidebar:
+        absent
+
+= Main Content =
+    main-content:
+        visible
+        # No left margin on mobile (sidebar hidden)
+        inside partly viewport 0px left
+
+    page-title:
+        visible
+        text is "Dashboard"
+
+    # Page title and actions stacked vertically
+    page-title:
+        above page-actions 5 to 20px
+
+= Stats Grid =
+    stats-grid:
+        visible
+
+    # 2x2 grid on mobile: cards 1 and 2 in first row
+    stat-card-1:
+        visible
+        left-of stat-card-2 5 to 20px
+
+    # Cards 1 and 3 vertically stacked
+    stat-card-1:
+        above stat-card-3 5 to 20px
+
+    stat-card-2:
+        above stat-card-4 5 to 20px
+
+    # Row alignment
+    stat-card-1:
+        aligned horizontally top stat-card-2 2px
+    stat-card-3:
+        aligned horizontally top stat-card-4 2px
+
+= Data Table =
+    table-container:
+        visible
+        below stats-grid 20 to 50px
+
+    table-title:
+        visible
+        text is "Recent Orders"

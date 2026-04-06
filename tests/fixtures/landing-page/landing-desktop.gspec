@@ -1,0 +1,157 @@
+@objects
+    header              css  .header
+    logo                css  .logo
+    nav                 css  .nav
+    header-cta          css  .header-cta
+    hero                css  .hero
+    hero-title          css  .hero-title
+    hero-subtitle       css  .hero-subtitle
+    hero-buttons        css  .hero-buttons
+    btn-primary         css  .btn-primary
+    btn-secondary       css  .btn-secondary
+    features            css  .features
+    features-title      css  .features-title
+    features-grid       css  .features-grid
+    feature-card-1      css  .feature-card:nth-child(1)
+    feature-card-2      css  .feature-card:nth-child(2)
+    feature-card-3      css  .feature-card:nth-child(3)
+    pricing             css  .pricing
+    pricing-title       css  .pricing-title
+    pricing-grid        css  .pricing-grid
+    price-card-1        css  .price-card:nth-child(1)
+    price-card-2        css  .price-card:nth-child(2)
+    price-card-3        css  .price-card:nth-child(3)
+    footer              css  .footer
+    footer-brand        css  .footer-brand
+    footer-bottom       css  .footer-bottom
+
+# =============================================================================
+# DESKTOP LAYOUT (1280x800)
+# =============================================================================
+
+= Header =
+    header:
+        visible
+        height 60 to 70px
+        inside viewport 0px top, 0px left, 0px right
+
+    logo:
+        visible
+        inside header 10 to 60px left
+        text is "CloudSync"
+
+    nav:
+        visible
+
+    header-cta:
+        visible
+        inside header 10 to 60px right
+        text is "Get Started"
+        height 30 to 50px
+
+    logo:
+        left-of header-cta
+
+    nav:
+        right-of logo
+        left-of header-cta
+
+= Hero Section =
+    hero:
+        visible
+        below header
+        width 1280px
+
+    hero-title:
+        visible
+        inside hero 40 to 120px top
+        text is "Your Files, Everywhere You Need Them"
+
+    hero-subtitle:
+        visible
+        below hero-title 10 to 30px
+
+    hero-buttons:
+        visible
+        below hero-subtitle 20 to 50px
+
+    btn-primary:
+        visible
+        text is "Start Free Trial"
+        height 40 to 60px
+
+    btn-secondary:
+        visible
+        text is "Watch Demo"
+        height 40 to 60px
+
+    btn-primary:
+        left-of btn-secondary 5 to 30px
+
+= Features Section =
+    features:
+        visible
+        below hero
+
+    features-title:
+        visible
+        text is "Why Choose CloudSync?"
+
+    features-grid:
+        visible
+        below features-title 40 to 100px
+
+    # Three feature cards in a row
+    feature-card-1:
+        visible
+        left-of feature-card-2 20 to 50px
+
+    feature-card-2:
+        visible
+        left-of feature-card-3 20 to 50px
+
+    # Cards should be horizontally aligned
+    feature-card-1:
+        aligned horizontally top feature-card-2 2px
+    feature-card-2:
+        aligned horizontally top feature-card-3 2px
+
+= Pricing Section =
+    pricing:
+        visible
+        below features
+
+    pricing-title:
+        visible
+        text is "Simple, Transparent Pricing"
+
+    pricing-grid:
+        visible
+        below pricing-title 40 to 100px
+
+    # Three price cards in a row
+    price-card-1:
+        visible
+        left-of price-card-2 10 to 40px
+    price-card-2:
+        visible
+        left-of price-card-3 10 to 40px
+
+    # Cards aligned at top
+    price-card-1:
+        aligned horizontally top price-card-2 2px
+    price-card-2:
+        aligned horizontally top price-card-3 2px
+
+= Footer =
+    footer:
+        visible
+        below pricing
+
+    footer-brand:
+        visible
+        text is "CloudSync"
+
+    footer-bottom:
+        visible
+        inside footer 0 to 200px bottom

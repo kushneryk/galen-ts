@@ -1,0 +1,149 @@
+@objects
+    topbar              css  .topbar
+    topbar-brand        css  .topbar-brand
+    topbar-search       css  .topbar-search
+    topbar-username     css  .topbar-username
+    topbar-avatar       css  .topbar-avatar
+    sidebar             css  .sidebar
+    main-content        css  .main-content
+    page-title          css  .page-title
+    page-actions        css  .page-actions
+    btn-export          css  .btn-export
+    btn-add             css  .btn-add
+    stats-grid          css  .stats-grid
+    stat-card-1         css  .stat-card:nth-child(1)
+    stat-card-2         css  .stat-card:nth-child(2)
+    stat-card-3         css  .stat-card:nth-child(3)
+    stat-card-4         css  .stat-card:nth-child(4)
+    stat-value-1        css  .stat-card:nth-child(1) .stat-value
+    stat-value-2        css  .stat-card:nth-child(2) .stat-value
+    stat-label-1        css  .stat-card:nth-child(1) .stat-label
+    table-container     css  .table-container
+    table-title         css  .table-title
+    table-filter        css  .table-filter
+    table-pagination    css  .table-pagination
+
+# =============================================================================
+# DESKTOP LAYOUT (1440x900)
+# =============================================================================
+
+= Top Bar =
+    topbar:
+        visible
+        height 50 to 60px
+        inside viewport 0px top, 0px left, 0px right
+
+    topbar-brand:
+        visible
+        inside topbar 15 to 35px left
+        text is "Acme Dashboard"
+
+    topbar-search:
+        visible
+        width 280 to 360px
+        height 30 to 42px
+
+    topbar-username:
+        visible
+        text is "Jane Smith"
+
+    topbar-avatar:
+        visible
+        width 28 to 40px
+        height 28 to 40px
+        inside topbar 15 to 35px right
+
+    # Layout order: brand ... search ... user/avatar
+    topbar-brand:
+        left-of topbar-search
+    topbar-search:
+        left-of topbar-username
+
+= Sidebar =
+    sidebar:
+        visible
+        below topbar 0px
+        width 230 to 250px
+        inside viewport 0px left
+
+= Main Content =
+    main-content:
+        visible
+        right-of sidebar 0px
+
+    page-title:
+        visible
+        text is "Dashboard"
+
+    btn-export:
+        visible
+        text is "Export CSV"
+
+    btn-add:
+        visible
+        text is "+ Add New"
+
+    btn-export:
+        left-of btn-add 5 to 20px
+
+    page-title:
+        left-of btn-export
+
+= Stats Grid =
+    stats-grid:
+        visible
+        below page-title 20 to 60px
+
+    # 4 stat cards in a row
+    stat-card-1:
+        visible
+        left-of stat-card-2 10 to 30px
+
+    stat-card-2:
+        visible
+        left-of stat-card-3 10 to 30px
+
+    stat-card-3:
+        visible
+        left-of stat-card-4 10 to 30px
+
+    # All cards aligned horizontally at top
+    stat-card-1:
+        aligned horizontally top stat-card-2 2px
+    stat-card-2:
+        aligned horizontally top stat-card-3 2px
+    stat-card-3:
+        aligned horizontally top stat-card-4 2px
+
+    # Card content
+    stat-value-1:
+        visible
+        text is "$48,290"
+
+    stat-value-2:
+        visible
+        text is "2,847"
+
+    stat-label-1:
+        visible
+        text is "Total Revenue"
+
+= Data Table =
+    table-container:
+        visible
+        below stats-grid 20 to 50px
+
+    table-title:
+        visible
+        text is "Recent Orders"
+
+    table-filter:
+        visible
+        inside table-container 10 to 30px right
+
+    table-title:
+        left-of table-filter
+
+    table-pagination:
+        visible
+        inside table-container 0 to 20px bottom

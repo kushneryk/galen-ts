@@ -1,0 +1,105 @@
+@objects
+    header              css  .header
+    logo                css  .logo
+    nav                 css  .nav
+    header-cta          css  .header-cta
+    hero                css  .hero
+    hero-title          css  .hero-title
+    hero-subtitle       css  .hero-subtitle
+    btn-primary         css  .btn-primary
+    btn-secondary       css  .btn-secondary
+    features            css  .features
+    features-grid       css  .features-grid
+    feature-card-1      css  .feature-card:nth-child(1)
+    feature-card-2      css  .feature-card:nth-child(2)
+    feature-card-3      css  .feature-card:nth-child(3)
+    pricing             css  .pricing
+    pricing-grid        css  .pricing-grid
+    price-card-1        css  .price-card:nth-child(1)
+    price-card-2        css  .price-card:nth-child(2)
+    price-card-3        css  .price-card:nth-child(3)
+    footer              css  .footer
+
+# =============================================================================
+# MOBILE LAYOUT (375x667)
+# =============================================================================
+
+= Header =
+    header:
+        visible
+        height 60 to 70px
+        inside viewport 0px top, 0px left, 0px right
+
+    logo:
+        visible
+        text is "CloudSync"
+
+    # Navigation is hidden on mobile
+    nav:
+        absent
+
+    header-cta:
+        visible
+
+= Hero Section =
+    hero:
+        visible
+        below header
+
+    hero-title:
+        visible
+
+    hero-subtitle:
+        visible
+        below hero-title 5 to 30px
+
+    # Buttons stacked vertically on mobile
+    btn-primary:
+        visible
+        above btn-secondary 5 to 25px
+
+= Features Section =
+    features:
+        visible
+        below hero
+
+    # Feature cards stacked vertically (single column)
+    feature-card-1:
+        visible
+        above feature-card-2 20 to 50px
+
+    feature-card-2:
+        visible
+        above feature-card-3 20 to 50px
+
+    # Cards should be vertically aligned (same left edge)
+    feature-card-1:
+        aligned vertically left feature-card-2 2px
+    feature-card-2:
+        aligned vertically left feature-card-3 2px
+
+    # Each card nearly full width
+    feature-card-1:
+        width 280 to 375px
+
+= Pricing Section =
+    pricing:
+        visible
+        below features
+
+    # Price cards stacked vertically
+    price-card-1:
+        visible
+        above price-card-2 10 to 40px
+    price-card-2:
+        visible
+        above price-card-3 10 to 40px
+
+    # Cards aligned at left
+    price-card-1:
+        aligned vertically left price-card-2 2px
+
+= Footer =
+    footer:
+        visible
+        below pricing
