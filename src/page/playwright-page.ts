@@ -47,11 +47,14 @@ class PlaywrightElement implements PageElement {
   }
 
   async getCssProperty(name: string): Promise<string> {
-    // Runs in browser context — Playwright serializes args automatically
-    return await this.locator.evaluate(
-      `(el, prop) => getComputedStyle(el).getPropertyValue(prop)`,
-      name,
-    ) as string;
+    // The callback runs in the browser context where getComputedStyle exists.
+    // We use a type assertion because tsconfig does not include DOM lib.
+    const fn = ((el: unknown, prop: string) =>
+      (globalThis as any).getComputedStyle(el).getPropertyValue(prop)) as (
+      el: unknown,
+      prop: string,
+    ) => string;
+    return await this.locator.evaluate(fn, name);
   }
 }
 

@@ -20,7 +20,7 @@ abstract class SpecValidationSize<T extends Spec & { range: Range }> extends Spe
 
     const area = await element.getArea();
     const realValue = this.getSizeValue(area);
-    const convertedValue = pageValidation.convertValue(spec.range, realValue);
+    const convertedValue = await pageValidation.convertValue(spec.range, realValue);
 
     const meta: LayoutMeta = {
       key: `${objectName}/${this.getUnitName()}`,

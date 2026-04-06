@@ -49,6 +49,16 @@ export class PageSpec {
   }
 
   findMatchingObjectNames(pattern: string): string[] {
+    // Comma-separated object names: resolve each independently
+    if (pattern.includes(",")) {
+      const parts = pattern.split(",").map(p => p.trim());
+      const result: string[] = [];
+      for (const part of parts) {
+        result.push(...this.findMatchingObjectNames(part));
+      }
+      return result;
+    }
+
     // Group reference: &groupName
     if (pattern.startsWith("&")) {
       const groupName = pattern.substring(1);

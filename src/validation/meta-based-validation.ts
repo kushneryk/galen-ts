@@ -49,14 +49,14 @@ export class MetaBasedValidation {
     return this;
   }
 
-  validate(
+  async validate(
     firstArea: Rect,
     secondArea: Rect,
     pageValidation: PageValidation,
     direction: string,
-  ): SimpleValidationResult {
+  ): Promise<SimpleValidationResult> {
     const offset = this.getOffset(firstArea, secondArea);
-    const calculatedOffset = pageValidation.convertValue(
+    const calculatedOffset = await pageValidation.convertValue(
       this.expectedRange,
       offset,
     );

@@ -57,10 +57,10 @@ describe("PageValidation", () => {
   });
 
   describe("convertValue", () => {
-    it("returns raw value for non-percentage range", () => {
+    it("returns raw value for non-percentage range", async () => {
       const ps = new PageSpec();
       const pv = new PageValidation(mockPage({}), ps);
-      expect(pv.convertValue(Range.exact(new RangeValue(100)), 50)).toBe(50);
+      expect(await pv.convertValue(Range.exact(new RangeValue(100)), 50)).toBe(50);
     });
   });
 });

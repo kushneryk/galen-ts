@@ -25,7 +25,7 @@ export class SpecValidationNear extends SpecValidation<SpecNear> {
 
     for (const location of spec.locations) {
       for (const side of location.sides) {
-        const result = MetaBasedValidation.forObjects(
+        const result = await MetaBasedValidation.forObjects(
           objectName,
           spec.object,
           location.range,

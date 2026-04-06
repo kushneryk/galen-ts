@@ -86,9 +86,9 @@ export class PageValidation {
     return this.pageSpec.findMatchingObjectNames(pattern);
   }
 
-  convertValue(range: Range, realValue: number): number {
+  async convertValue(range: Range, realValue: number): Promise<number> {
     if (range.isPercentage() && range.percentageOfValue) {
-      const refValue = this.getPercentageReferenceValue(
+      const refValue = await this.getPercentageReferenceValue(
         range.percentageOfValue,
       );
       if (refValue !== 0) {
@@ -109,10 +109,22 @@ export class PageValidation {
     return `${realValue}px which is not in range of ${range.prettyString()}`;
   }
 
-  private getPercentageReferenceValue(objectPath: string): number {
+  private async getPercentageReferenceValue(objectPath: string): Promise<number> {
     // objectPath format: "objectName/property" e.g. "viewport/width"
-    // For now return 0, this will be resolved at runtime
-    // TODO: resolve from cached element areas
-    return 0;
+    const parts = objectPath.split("/");
+    if (parts.length !== 2) return 0;
+
+    const [objectName, property] = parts;
+    const element = await this.findPageElement(objectName);
+    if (!element || element instanceof AbsentPageElement) return 0;
+
+    const area = await element.getArea();
+    if (!area) return 0;
+
+    switch (property) {
+      case "width": return area.width;
+      case "height": return area.height;
+      default: return 0;
+    }
   }
 }

@@ -38,7 +38,7 @@ class SpecValidationDirectionPosition extends SpecValidation<SpecDirectionPositi
     const mainArea = await mainElement.getArea();
     const secondArea = await secondElement.getArea();
 
-    const result = MetaBasedValidation.forObjects(
+    const result = await MetaBasedValidation.forObjects(
       objectName,
       spec.object,
       spec.range,
