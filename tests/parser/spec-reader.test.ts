@@ -4,7 +4,7 @@ import {
   SpecWidth, SpecHeight, SpecAbove, SpecBelow, SpecLeftOf, SpecRightOf,
   SpecInside, SpecNear, SpecContains, SpecCentered, SpecHorizontally, SpecVertically,
   SpecText, SpecCss, SpecOcr, SpecVisible, SpecAbsent, SpecCount, SpecImage, SpecComponent,
-  Alignment, CenteredLocation, TextCheckType, CountFetchType,
+  Alignment, CenteredLocation, TextCheckType, CountFetchType, ErrorRateType,
 } from "../../src/specs/specs.js";
 import { RangeType } from "../../src/specs/range.js";
 
@@ -117,6 +117,13 @@ describe("SpecReader", () => {
       expect(s.errorRate).toBe(2);
     });
 
+    it('accepts tilde prefix on error rate: "aligned horizontally centered obj ~ 8px"', () => {
+      const s = reader.read(
+        "aligned horizontally centered obj ~ 8px",
+      ) as SpecHorizontally;
+      expect(s.errorRate).toBe(8);
+    });
+
     it("throws for invalid direction", () => {
       expect(() => reader.read("aligned diagonal centered obj")).toThrow();
     });
@@ -149,6 +156,11 @@ describe("SpecReader", () => {
     it("parses with explicit error rate", () => {
       const s = reader.read("centered on box 5px") as SpecCentered;
       expect(s.errorRate).toBe(5);
+    });
+
+    it('accepts tilde prefix: "centered on box ~ 3px"', () => {
+      const s = reader.read("centered on box ~ 3px") as SpecCentered;
+      expect(s.errorRate).toBe(3);
     });
   });
 
@@ -233,6 +245,20 @@ describe("SpecReader", () => {
       const s = reader.read('image file "test.png"') as SpecImage;
       expect(s).toBeInstanceOf(SpecImage);
       expect(s.imagePaths).toContain("test.png");
+    });
+
+    it('accepts tilde on percent error rate: "image file ..., error ~ 2%"', () => {
+      const s = reader.read(
+        'image file "test.png", error ~ 2%',
+      ) as SpecImage;
+      expect(s.errorRate).toEqual({ value: 2, type: ErrorRateType.PERCENT });
+    });
+
+    it('accepts tilde on pixel error rate: "image file ..., error ~ 5px"', () => {
+      const s = reader.read(
+        'image file "test.png", error ~ 5px',
+      ) as SpecImage;
+      expect(s.errorRate).toEqual({ value: 5, type: ErrorRateType.PIXELS });
     });
   });
 

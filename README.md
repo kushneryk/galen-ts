@@ -112,8 +112,14 @@ width >= 50px                   # greater than or equals
 width < 200px                   # less than
 width <= 200px                  # less than or equals
 width ~ 100px                   # approximate (±2px)
+width ~ 100% of container/width # approximate percentage (±2pp of container)
 width 50% of viewport/width     # percentage of reference
 ```
+
+The `~` prefix is also accepted on error rates in `aligned`, `centered`, and
+`image` specs — e.g. `aligned horizontally centered ~ 8px` or
+`image file "expected.png", error ~ 2%`. Error rate is already a tolerance,
+so the tilde is purely readability sugar there.
 
 ### Variables
 

@@ -471,7 +471,10 @@ function parseImageErrorRate(text: string): {
   value: number;
   type: import("../specs/specs.js").ErrorRateType;
 } {
-  const t = text.toLowerCase();
+  let t = text.toLowerCase().trim();
+  if (t.startsWith("~")) {
+    t = t.slice(1).trimStart();
+  }
   if (t.endsWith("%")) {
     return {
       value: parseFloat(t.slice(0, -1)),

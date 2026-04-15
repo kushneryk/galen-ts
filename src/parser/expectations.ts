@@ -112,12 +112,20 @@ export function expectRange(
   const nonNumeric = readWordSkippingDelimiters(reader);
 
   if (isApproximate && rangeTypeOverride === RangeType.BETWEEN) {
-    // Approximate range: ~100px means 98-102
+    const approxRange = Range.between(
+      new RangeValue(firstValue.asDouble() - APPROXIMATE_DELTA),
+      new RangeValue(firstValue.asDouble() + APPROXIMATE_DELTA),
+    );
     if (nonNumeric === "px" || nonNumeric === "" || options.noEndingWord) {
-      return Range.between(
-        new RangeValue(firstValue.asDouble() - APPROXIMATE_DELTA),
-        new RangeValue(firstValue.asDouble() + APPROXIMATE_DELTA),
-      );
+      return approxRange;
+    }
+    if (nonNumeric === "%") {
+      const ofWord = readWordSkippingDelimiters(reader);
+      if (ofWord !== "of") {
+        throw new Error(`Expected 'of' keyword but got: '${ofWord}'`);
+      }
+      const objectPath = readWordSkippingDelimiters(reader);
+      return approxRange.withPercentageOf(objectPath);
     }
   }
 
@@ -239,6 +247,10 @@ function expectSides(reader: StringCharReader): Side[] {
 
 export function expectErrorRate(reader: StringCharReader): number {
   const pos = reader.getCursorPosition();
+  if (reader.firstNonWhiteSpaceSymbol() === "~") {
+    reader.skipWhitespace();
+    reader.next();
+  }
   const value = readNumber(reader);
   const unit = readWordSkippingDelimiters(reader);
   if (unit !== "px") {

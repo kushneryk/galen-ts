@@ -54,6 +54,23 @@ describe("expectRange", () => {
     expect(r.percentageOfValue).toBe("screen/width");
   });
 
+  it('parses approximate percentage: "~100% of container/width" as between(98,102)%', () => {
+    const r = parse("~100% of container/width");
+    expect(r.rangeType).toBe(RangeType.BETWEEN);
+    expect(r.from!.asInt()).toBe(98);
+    expect(r.to!.asInt()).toBe(102);
+    expect(r.isPercentage()).toBe(true);
+    expect(r.percentageOfValue).toBe("container/width");
+  });
+
+  it('parses approximate percentage with space: "~ 50% of screen/width"', () => {
+    const r = parse("~ 50% of screen/width");
+    expect(r.rangeType).toBe(RangeType.BETWEEN);
+    expect(r.from!.asInt()).toBe(48);
+    expect(r.to!.asInt()).toBe(52);
+    expect(r.isPercentage()).toBe(true);
+  });
+
   it("parses with noEndingWord option", () => {
     const r = parseOpts("5", { noEndingWord: true });
     expect(r.rangeType).toBe(RangeType.EXACT);
@@ -95,6 +112,26 @@ describe("expectErrorRate", () => {
 
   it("throws when unit is not px", () => {
     expect(() => expectErrorRate(new StringCharReader("2em"))).toThrow();
+  });
+
+  it('accepts tilde prefix "~2px"', () => {
+    expect(expectErrorRate(new StringCharReader("~2px"))).toBe(2);
+  });
+
+  it('accepts tilde with whitespace "~ 2px"', () => {
+    expect(expectErrorRate(new StringCharReader("~ 2px"))).toBe(2);
+  });
+
+  it('accepts tilde with larger value "~8px"', () => {
+    expect(expectErrorRate(new StringCharReader("~8px"))).toBe(8);
+  });
+
+  it('accepts tilde with decimal "~ 0.5px"', () => {
+    expect(expectErrorRate(new StringCharReader("~ 0.5px"))).toBe(0.5);
+  });
+
+  it("still enforces px unit after tilde", () => {
+    expect(() => expectErrorRate(new StringCharReader("~2em"))).toThrow();
   });
 });
 
